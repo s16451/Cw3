@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;  
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cw3
@@ -6,6 +9,7 @@ namespace Cw3
     [ApiController, Route("api/students")]
     public class StudentsController : ControllerBase
     {
+        private const string ConString = "Data Source=db-mssql;Initial Catalog=s16451;Integrated Security=True";
         private readonly IDbService _dbService;
 
         public StudentsController(IDbService dbService)
@@ -14,24 +18,59 @@ namespace Cw3
         }
         
         [HttpGet]
-        public IActionResult GetStudent(string orderBy)
+        public IActionResult GetStudents(string orderBy)
         {
-            return Ok(_dbService.GetStudents());
+            var list = new List<Student>();
+
+            using (SqlConnection con = new SqlConnection(ConString))
+            using (SqlCommand com = new SqlCommand())
+            {
+                com.Connection = con;
+                com.CommandText = "select * from student";
+
+                con.Open();
+                SqlDataReader dr = com.ExecuteReader();
+                while (dr.Read())
+                {
+                    var st = new Student();
+                    st.IndexNumber = dr["IndexNumber"].ToString();
+                    st.FirstName = dr["FirstName"].ToString();
+                    st.LastName = dr["LastName"].ToString();
+                    list.Add(st);
+                }
+            }
+            
+            if (orderBy == "lastname")
+            {
+                return Ok(list.OrderBy(s => s.LastName));
+            }
+            
+            return Ok(list);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetStudent(int id)
+        public IActionResult GetStudent(string id)
         {
-            if (id == 1)
+            using (SqlConnection con = new SqlConnection(ConString))
+            using (SqlCommand com = new SqlCommand())
             {
-                return Ok("Kowlaski");
-            }
-            if (id == 2)
-            {
-                return Ok("Malewski");
+                com.Connection = con;
+                com.CommandText = "select * from student where indexnumber=@index";
+                com.Parameters.AddWithValue("index", id);
+
+                con.Open();
+                var dr = com.ExecuteReader();
+                if (dr.Read())
+                {
+                    var st = new Student();
+                    st.IndexNumber = dr["IndexNumber"].ToString();
+                    st.FirstName = dr["FirstName"].ToString();
+                    st.LastName = dr["LastName"].ToString();
+                    return Ok(st);
+                }
             }
 
-            return NotFound("Nie znaleziono studenta");
+            return NotFound();
         }
 
         [HttpPost]
