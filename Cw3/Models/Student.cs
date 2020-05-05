@@ -1,4 +1,6 @@
-﻿namespace Cw3
+﻿using System;
+
+namespace APBD
 {
     public class Student
     {
@@ -6,5 +8,7 @@
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string IndexNumber { get; set; }
+        public DateTime Birthdate { get; set; }
+        public string Studies { get; set; }
     }
 }

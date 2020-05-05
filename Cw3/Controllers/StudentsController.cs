@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Cw3
+namespace APBD
 {
     [ApiController, Route("api/students")]
     public class StudentsController : ControllerBase
