@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APBD
 {
-    [Route("api/enrollments")]
     [ApiController]
     public class EnrollmentsController : ControllerBase
     {
@@ -14,6 +14,7 @@ namespace APBD
         private SqlTransaction tran;
 
         [HttpPost]
+        [Route("api/enrollments")]
         public IActionResult EnrollStudent(EnrollStudentRequest request)
         {
             using (con = new SqlConnection(ConString))
@@ -31,13 +32,14 @@ namespace APBD
                     com.Parameters.AddWithValue("name", request.Studies);
 
                     int idStudies;
-                    using ( var dr = com.ExecuteReader())
+                    using (var dr = com.ExecuteReader())
                     {
                         if (!dr.Read())
                         {
                             tran.Rollback();
                             return BadRequest("Studia nie istnieja");
                         }
+
                         idStudies = (int) dr["IdStudy"];
                     }
 
@@ -65,7 +67,8 @@ namespace APBD
                         tran.Rollback();
                         return BadRequest("Student id jest zajete przez innego studenta");
                     }
-                    com.CommandText = 
+
+                    com.CommandText =
                         "INSERT INTO Student(IndexNumber, FirstName, LastName, BirthDate, IdEnrollment) VALUES(@in, @fn, @ln, @bd, @ie)";
                     com.Parameters.AddWithValue("in", request.IndexNumber);
                     com.Parameters.AddWithValue("fn", request.FirstName);
@@ -90,7 +93,55 @@ namespace APBD
             return Ok(response);
         }
 
-        private int InsertEnrollment(int idStudies){
+        [HttpPost]
+        [Route("api/enrollments/promotions")]
+        public IActionResult PromoteStudents(PromoteStudentsRequest request)
+        {
+            using (con = new SqlConnection(ConString))
+            using (com = new SqlCommand())
+            {
+                com.Connection = con;
+                con.Open();
+                tran = con.BeginTransaction();
+                com.Transaction = tran;
+                
+                try
+                {
+                    //Sprawdzamy czy studia istnieją oraz czy semestr się zgadza już w procedurze
+                    //Uruchamiamy procedurę
+                    com.CommandText = "PromoteStudents";
+                    com.CommandType = CommandType.StoredProcedure;
+                    com.Parameters.Add(new SqlParameter("Studies", request.Studies));
+                    com.Parameters.Add(new SqlParameter("Semester", request.Semester));
+                    
+                    var response = new EnrollmentResponse();
+                    using (var dr = com.ExecuteReader())
+                    {
+                        if (!dr.Read())
+                        {
+                            tran.Rollback();
+                            return BadRequest();
+                        }
+
+                        response.IdEnrollment = (int) dr["IdEnrollment"];
+                        response.Semester = (int) dr["Semester"];
+                        response.IdStudy = (int) dr["IdStudy"];
+                        response.StartDate = (DateTime) dr["StartDate"];
+                    }
+
+                    tran.Commit();
+                    return Ok(response);
+                }
+                catch (Exception e)
+                {
+                    tran.Rollback();
+                    return NotFound();
+                }
+            }
+        }
+
+        private int InsertEnrollment(int idStudies)
+        {
             com.CommandText = "SELECT MAX(IdEnrollment) FROM Enrollment";
             int highestId = 0;
             try
@@ -99,9 +150,10 @@ namespace APBD
                 highestId++;
             }
             catch (Exception e)
-            {}
+            {
+            }
 
-            com.CommandText = 
+            com.CommandText =
                 "INSERT INTO Enrollment(IdEnrollment, Semester, IdStudy, StartDate) VALUES(@ide, @sem, @ids, @sd)";
             com.Parameters.AddWithValue("ide", highestId);
             com.Parameters.AddWithValue("sem", 1);
