@@ -16,8 +16,6 @@ namespace APBD
         [HttpPost]
         public IActionResult EnrollStudent(EnrollStudentRequest request)
         {
-            var student = request.MapToStudent();
-
             using (con = new SqlConnection(ConString))
             using (com = new SqlCommand())
             {
@@ -72,7 +70,7 @@ namespace APBD
                     com.Parameters.AddWithValue("in", request.IndexNumber);
                     com.Parameters.AddWithValue("fn", request.FirstName);
                     com.Parameters.AddWithValue("ln", request.LastName);
-                    com.Parameters.AddWithValue("bd", request.Birthdate);
+                    com.Parameters.AddWithValue("bd", MapStringToDateTime(request.Birthdate));
                     com.Parameters.AddWithValue("ie", idEnrollment);
 
                     com.ExecuteNonQuery();
@@ -84,8 +82,9 @@ namespace APBD
                     return BadRequest();
                 }
             }
-            
-            var response = new EnrollStudentResponse(student);
+
+            var response = new EnrollStudentResponse();
+            response.LastName = request.LastName;
             response.Semester = 1;
             response.StartDate = DateTime.Now;
             return Ok(response);
@@ -124,6 +123,12 @@ namespace APBD
             }
 
             return isUnique;
+        }
+
+        private DateTime MapStringToDateTime(string date)
+        {
+            var splitDate = date.Split('.');
+            return new DateTime(int.Parse(splitDate[2]), int.Parse(splitDate[1]), int.Parse(splitDate[0]));
         }
     }
 }
