@@ -26,6 +26,7 @@ namespace APBD
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IDbService, MockDbService>();
+            services.AddTransient<IStudentDbService, SqlServerDbService>();
             services.AddControllers();
         }
 
