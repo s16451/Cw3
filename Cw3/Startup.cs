@@ -45,6 +45,7 @@ namespace APBD
                 config.SwaggerEndpoint("/swagger/v1/swagger.json", "Students App API");
             });
 
+            app.UseMiddleware<LoggingMiddleware>();
             app.Use(async (context, next) =>
             {
                 if (!context.Request.Headers.ContainsKey("Index"))
