@@ -33,8 +33,8 @@ namespace APBD
         {
             try
             {
-                var response = _service.PromoteStudents(request);
-                return Ok(response);
+                var enrollment = _service.PromoteStudents(request);
+                return Ok(new EnrollmentResponse(enrollment));
             }
             catch (Exception e)
             {

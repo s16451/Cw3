@@ -5,7 +5,7 @@ namespace APBD
     public interface IStudentDbService
     {
         EnrollStudentResponse EnrollStudent(EnrollStudentRequest request);
-        EnrollmentResponse PromoteStudents(PromoteStudentsRequest request);
+        Enrollment PromoteStudents(PromoteStudentsRequest request);
         Student GetStudent(string index);
     }
 }

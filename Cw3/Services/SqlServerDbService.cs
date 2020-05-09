@@ -89,7 +89,7 @@ namespace APBD
             return response;
         }
 
-        public EnrollmentResponse PromoteStudents(PromoteStudentsRequest request)
+        public Enrollment PromoteStudents(PromoteStudentsRequest request)
         {
             using (con = new SqlConnection(ConString))
             using (com = new SqlCommand())
@@ -108,7 +108,7 @@ namespace APBD
                     com.Parameters.Add(new SqlParameter("Studies", request.Studies));
                     com.Parameters.Add(new SqlParameter("Semester", request.Semester));
                     
-                    var response = new EnrollmentResponse();
+                    var enrollment = new Enrollment();
                     using (var dr = com.ExecuteReader())
                     {
                         if (!dr.Read())
@@ -117,14 +117,14 @@ namespace APBD
                             throw new Exception("Nie udalo sie przetworzyc zadania");
                         }
 
-                        response.IdEnrollment = (int) dr["IdEnrollment"];
-                        response.Semester = (int) dr["Semester"];
-                        response.IdStudy = (int) dr["IdStudy"];
-                        response.StartDate = (DateTime) dr["StartDate"];
+                        enrollment.IdEnrollment = (int) dr["IdEnrollment"];
+                        enrollment.Semester = (int) dr["Semester"];
+                        enrollment.IdStudy = (int) dr["IdStudy"];
+                        enrollment.StartDate = (DateTime) dr["StartDate"];
                     }
 
                     tran.Commit();
-                    return response;
+                    return enrollment;
                 }
                 catch (Exception e)
                 {

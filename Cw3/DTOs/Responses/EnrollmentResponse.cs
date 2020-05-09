@@ -8,5 +8,13 @@ namespace APBD
         public int Semester { get; set; }
         public int IdStudy { get; set; }
         public DateTime StartDate { get; set; }
+
+        public EnrollmentResponse(Enrollment enrollment)
+        {
+            IdEnrollment = enrollment.IdEnrollment;
+            Semester = enrollment.Semester;
+            IdStudy = enrollment.IdStudy;
+            StartDate = enrollment.StartDate;
+        }
     }
 }
