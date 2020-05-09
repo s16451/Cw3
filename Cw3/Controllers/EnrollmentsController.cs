@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace APBD
 {
     [ApiController]
+    [Route("api/enrollments")]
     public class EnrollmentsController : ControllerBase
     {
         private readonly IStudentDbService _service;
@@ -14,7 +15,6 @@ namespace APBD
         }
 
         [HttpPost]
-        [Route("api/enrollments")]
         public IActionResult EnrollStudent(EnrollStudentRequest request)
         {
             try
@@ -28,8 +28,7 @@ namespace APBD
             }
         }
 
-        [HttpPost]
-        [Route("api/enrollments/promotions")]
+        [HttpPost("promotions")]
         public IActionResult PromoteStudents(PromoteStudentsRequest request)
         {
             try

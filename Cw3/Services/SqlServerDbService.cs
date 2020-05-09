@@ -134,6 +134,30 @@ namespace APBD
             }
         }
 
+        public Student GetStudent(string index)
+        { 
+            using (SqlConnection con = new SqlConnection(ConString))
+            using (SqlCommand com = new SqlCommand())
+            {
+                com.Connection = con;
+                com.CommandText = "select * from student where indexnumber=@index";
+                com.Parameters.AddWithValue("index", index);
+
+                con.Open();
+                var dr = com.ExecuteReader();
+                if (dr.Read())
+                {
+                    var st = new Student();
+                    st.IndexNumber = dr["IndexNumber"].ToString();
+                    st.FirstName = dr["FirstName"].ToString();
+                    st.LastName = dr["LastName"].ToString();
+                    return st;
+                }
+
+                return null;
+            }
+        }
+
         private int InsertEnrollment(int idStudies)
         {
             com.CommandText = "SELECT MAX(IdEnrollment) FROM Enrollment";

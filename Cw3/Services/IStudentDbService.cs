@@ -6,5 +6,6 @@ namespace APBD
     {
         EnrollStudentResponse EnrollStudent(EnrollStudentRequest request);
         EnrollmentResponse PromoteStudents(PromoteStudentsRequest request);
+        Student GetStudent(string index);
     }
 }

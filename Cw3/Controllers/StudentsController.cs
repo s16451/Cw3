@@ -6,15 +6,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace APBD
 {
-    [ApiController, Route("api/students")]
+    [ApiController]
+    [Route("api/students")]
     public class StudentsController : ControllerBase
     {
         private const string ConString = "Data Source=db-mssql;Initial Catalog=s16451;Integrated Security=True";
-        private readonly IDbService _dbService;
+        private readonly IStudentDbService _service;
 
-        public StudentsController(IDbService dbService)
+        public StudentsController(IStudentDbService service)
         {
-            _dbService = dbService;
+            _service = service;
         }
         
         [HttpGet]
@@ -51,26 +52,13 @@ namespace APBD
         [HttpGet("{id}")]
         public IActionResult GetStudent(string id)
         {
-            using (SqlConnection con = new SqlConnection(ConString))
-            using (SqlCommand com = new SqlCommand())
+            var student = _service.GetStudent(id);
+            if (student == null)
             {
-                com.Connection = con;
-                com.CommandText = "select * from student where indexnumber=@index";
-                com.Parameters.AddWithValue("index", id);
-
-                con.Open();
-                var dr = com.ExecuteReader();
-                if (dr.Read())
-                {
-                    var st = new Student();
-                    st.IndexNumber = dr["IndexNumber"].ToString();
-                    st.FirstName = dr["FirstName"].ToString();
-                    st.LastName = dr["LastName"].ToString();
-                    return Ok(st);
-                }
+                return NotFound();
             }
 
-            return NotFound();
+            return Ok(student);
         }
 
         [HttpPost]
