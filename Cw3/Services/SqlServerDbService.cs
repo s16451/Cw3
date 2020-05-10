@@ -158,6 +158,37 @@ namespace APBD
             }
         }
 
+        public bool IsAuthStudent(LoginRequest request)
+        {
+            using (con = new SqlConnection(ConString))
+            using (com = new SqlCommand())
+            {
+                com.Connection = con;
+                con.Open();
+
+                try
+                {
+                    com.CommandText = "SELECT IndexNumber FROM Student WHERE IndexNumber=@login AND Password=@haslo";
+                    com.Parameters.AddWithValue("login", request.Login);
+                    com.Parameters.AddWithValue("haslo", request.Haslo);
+                    
+                    using (var dr = com.ExecuteReader())
+                    {
+                        if (!dr.Read())
+                        {
+                            return false;
+                        }
+
+                        return true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Nie udalo sie przetworzyc zadania");
+                }
+            }
+        }
+
         private int InsertEnrollment(int idStudies)
         {
             com.CommandText = "SELECT MAX(IdEnrollment) FROM Enrollment";

@@ -1,10 +1,12 @@
 ﻿using System;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APBD
 {
     [ApiController]
     [Route("api/enrollments")]
+    [Authorize("employee")]
     public class EnrollmentsController : ControllerBase
     {
         private readonly IStudentDbService _service;

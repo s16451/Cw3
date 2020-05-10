@@ -7,5 +7,6 @@ namespace APBD
         EnrollStudentResponse EnrollStudent(EnrollStudentRequest request);
         Enrollment PromoteStudents(PromoteStudentsRequest request);
         Student GetStudent(string index);
+        bool IsAuthStudent(LoginRequest request);
     }
 }
