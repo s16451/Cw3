@@ -6,7 +6,7 @@ namespace APBD
 {
     [ApiController]
     [Route("api/enrollments")]
-    [Authorize("employee")]
+    [Authorize(Roles = "employee")]
     public class EnrollmentsController : ControllerBase
     {
         private readonly IStudentDbService _service;
