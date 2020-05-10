@@ -158,7 +158,7 @@ namespace APBD
             }
         }
 
-        public bool IsAuthStudent(LoginRequest request)
+        public bool IsPasswordAuth(LoginRequest request)
         {
             using (con = new SqlConnection(ConString))
             using (com = new SqlCommand())
@@ -168,7 +168,7 @@ namespace APBD
 
                 try
                 {
-                    com.CommandText = "SELECT IndexNumber FROM Student WHERE IndexNumber=@login AND Password=@haslo";
+                    com.CommandText = "SELECT 1 FROM Student WHERE IndexNumber=@login AND Password=@haslo";
                     com.Parameters.AddWithValue("login", request.Login);
                     com.Parameters.AddWithValue("haslo", request.Haslo);
                     
@@ -184,6 +184,90 @@ namespace APBD
                 }
                 catch (Exception e)
                 {
+                    throw new Exception("Nie udalo sie przetworzyc zadania");
+                }
+            }
+        }
+        
+        public bool IsRefTokenAuth(string refToken)
+        {
+            using (con = new SqlConnection(ConString))
+            using (com = new SqlCommand())
+            {
+                com.Connection = con;
+                con.Open();
+
+                try
+                {
+                    com.CommandText = "SELECT 1 FROM Student WHERE RefToken=@refToken";
+                    com.Parameters.AddWithValue("refToken", refToken);
+
+                    using (var dr = com.ExecuteReader())
+                    {
+                        if (!dr.Read())
+                        {
+                            return false;
+                        }
+
+                        return true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Nie udalo sie przetworzyc zadania");
+                }
+            }
+        }
+
+        public void SaveRefToken(SaveRefTokenRequest request)
+        {
+            using (con = new SqlConnection(ConString))
+            using (com = new SqlCommand())
+            {
+                com.Connection = con;
+                con.Open();
+                tran = con.BeginTransaction();
+                com.Transaction = tran;
+
+                try
+                {
+                    com.CommandText = "UPDATE Student SET RefToken=@refToken WHERE IndexNumber=@index";
+                    com.Parameters.AddWithValue("refToken", request.RefToken);
+                    com.Parameters.AddWithValue("index", request.IndexNumber);
+
+                    com.ExecuteNonQuery();
+                    tran.Commit();
+                }
+                catch (Exception e)
+                {
+                    tran.Rollback();
+                    throw new Exception("Nie udalo sie przetworzyc zadania");
+                }
+            }
+        }
+        
+        public void SaveRefToken(string prevRefToken, string refToken)
+        {
+            using (con = new SqlConnection(ConString))
+            using (com = new SqlCommand())
+            {
+                com.Connection = con;
+                con.Open();
+                tran = con.BeginTransaction();
+                com.Transaction = tran;
+
+                try
+                {
+                    com.CommandText = "UPDATE Student SET RefToken=@refToken WHERE RefToken=@prevRefToken";
+                    com.Parameters.AddWithValue("refToken", refToken);
+                    com.Parameters.AddWithValue("prevRefToken", prevRefToken);
+
+                    com.ExecuteNonQuery();
+                    tran.Commit();
+                }
+                catch (Exception e)
+                {
+                    tran.Rollback();
                     throw new Exception("Nie udalo sie przetworzyc zadania");
                 }
             }

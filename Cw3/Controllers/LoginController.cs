@@ -12,7 +12,6 @@ namespace APBD
     [Route("api/login")]
     public class LoginController : ControllerBase
     {
-        private const string ConString = "Data Source=db-mssql;Initial Catalog=s16451;Integrated Security=True";
         private readonly IStudentDbService _service;
         private readonly IConfiguration _configuration;
 
@@ -21,14 +20,54 @@ namespace APBD
             _configuration = configuration;
             _service = service;
         }
-        
+
         [HttpPost]
         public IActionResult Login(LoginRequest request)
         {
             bool isAuth;
             try
             {
-                isAuth = _service.IsAuthStudent(request);
+                isAuth = _service.IsPasswordAuth(request);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+
+            if (!isAuth)
+            {
+                return Unauthorized();
+            }
+
+            var tokens = GenerateAuthToken("employee");
+
+            try
+            {
+                _service.SaveRefToken(new SaveRefTokenRequest
+                {
+                    IndexNumber = request.Login,
+                    RefToken = tokens.refreshToken.ToString()
+                });
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+            
+            return Ok(new
+            {
+                tokens.accessToken,
+                tokens.refreshToken
+            });
+        }
+
+        [HttpPost("refresh-token/{refToken}")]
+        public IActionResult RefreshToken(string refToken)
+        {
+            bool isAuth;
+            try
+            {
+                isAuth = _service.IsRefTokenAuth(refToken);
             }
             catch (Exception e)
             {
@@ -40,11 +79,31 @@ namespace APBD
                 return Unauthorized();
             }
             
+            var tokens = GenerateAuthToken("employee");
+            
+            try
+            {
+                _service.SaveRefToken(refToken, tokens.refreshToken.ToString());
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
+            
+            return Ok(new
+            {
+                tokens.accessToken,
+                tokens.refreshToken
+            });
+        }
+
+        private (string accessToken, Guid refreshToken) GenerateAuthToken(string role)
+        {
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, "1"),
                 new Claim(ClaimTypes.Name, "user"),
-                new Claim(ClaimTypes.Role, "employee")
+                new Claim(ClaimTypes.Role, role)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["SecretKey"]));
@@ -59,11 +118,10 @@ namespace APBD
                 signingCredentials: creds
             );
 
-            return Ok(new
-            {
-                accessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                refreshToken=Guid.NewGuid()
-            });
-        } 
+            return (
+                new JwtSecurityTokenHandler().WriteToken(token),
+                Guid.NewGuid()
+            );
+        }
     }
 }
