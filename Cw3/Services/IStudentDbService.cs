@@ -7,7 +7,7 @@ namespace APBD
         EnrollStudentResponse EnrollStudent(EnrollStudentRequest request);
         Enrollment PromoteStudents(PromoteStudentsRequest request);
         Student GetStudent(string index);
-        bool IsPasswordAuth(LoginRequest request);
+        EncryptedCredentials GetCredentials(LoginRequest request);
         bool IsRefTokenAuth(string refToken);
         void SaveRefToken(SaveRefTokenRequest request);
         void SaveRefToken(string prevToken, string token);

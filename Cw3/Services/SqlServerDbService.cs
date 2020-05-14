@@ -158,7 +158,7 @@ namespace APBD
             }
         }
 
-        public bool IsPasswordAuth(LoginRequest request)
+        public EncryptedCredentials GetCredentials(LoginRequest request)
         {
             using (con = new SqlConnection(ConString))
             using (com = new SqlCommand())
@@ -168,19 +168,22 @@ namespace APBD
 
                 try
                 {
-                    com.CommandText = "SELECT 1 FROM Student WHERE IndexNumber=@login AND Password=@haslo";
+                    com.CommandText = "SELECT Password, Salt FROM Student WHERE IndexNumber=@login";
                     com.Parameters.AddWithValue("login", request.Login);
-                    com.Parameters.AddWithValue("haslo", request.Haslo);
-                    
+
+                    var credentials = new EncryptedCredentials();
                     using (var dr = com.ExecuteReader())
                     {
                         if (!dr.Read())
                         {
-                            return false;
+                            throw new Exception("Nie udalo sie przetworzyc zadania");
                         }
 
-                        return true;
+                        credentials.Hash = (string)dr["Password"];
+                        credentials.Salt = (string)dr["Salt"];
                     }
+
+                    return credentials;
                 }
                 catch (Exception e)
                 {
@@ -188,7 +191,7 @@ namespace APBD
                 }
             }
         }
-        
+
         public bool IsRefTokenAuth(string refToken)
         {
             using (con = new SqlConnection(ConString))

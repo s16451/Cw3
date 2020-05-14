@@ -12,13 +12,15 @@ namespace APBD
     [Route("api/login")]
     public class LoginController : ControllerBase
     {
-        private readonly IStudentDbService _service;
+        private readonly IStudentDbService _dbService;
+        private readonly IPasswordHashingService _passwordHashingService;
         private readonly IConfiguration _configuration;
 
-        public LoginController(IStudentDbService service, IConfiguration configuration)
+        public LoginController(IStudentDbService dbService, IPasswordHashingService passwordHashingService, IConfiguration configuration)
         {
             _configuration = configuration;
-            _service = service;
+            _dbService = dbService;
+            _passwordHashingService = passwordHashingService;
         }
 
         [HttpPost]
@@ -27,7 +29,8 @@ namespace APBD
             bool isAuth;
             try
             {
-                isAuth = _service.IsPasswordAuth(request);
+                var credentials = _dbService.GetCredentials(request);
+                isAuth = _passwordHashingService.Validate(request.Haslo, credentials.Salt, credentials.Hash);
             }
             catch (Exception e)
             {
@@ -43,7 +46,7 @@ namespace APBD
 
             try
             {
-                _service.SaveRefToken(new SaveRefTokenRequest
+                _dbService.SaveRefToken(new SaveRefTokenRequest
                 {
                     IndexNumber = request.Login,
                     RefToken = tokens.refreshToken.ToString()
@@ -67,7 +70,7 @@ namespace APBD
             bool isAuth;
             try
             {
-                isAuth = _service.IsRefTokenAuth(refToken);
+                isAuth = _dbService.IsRefTokenAuth(refToken);
             }
             catch (Exception e)
             {
@@ -83,7 +86,7 @@ namespace APBD
             
             try
             {
-                _service.SaveRefToken(refToken, tokens.refreshToken.ToString());
+                _dbService.SaveRefToken(refToken, tokens.refreshToken.ToString());
             }
             catch (Exception e)
             {
